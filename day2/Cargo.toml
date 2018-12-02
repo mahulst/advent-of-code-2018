@@ -1,10 +1,6 @@
 [package]
-name = "aoc"
+name = "day2"
 version = "0.1.0"
 authors = ["Michel van der Hulst <michel@voorkanter.com>"]
 
-[workspace]
-
 [dependencies]
-day1 = { path = "day1" }
-day2 = { path = "day2" }
