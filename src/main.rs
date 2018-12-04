@@ -8,7 +8,7 @@ use std::prelude::v1::Vec;
 extern crate day3;
 
 fn main() {
-    let input = open_file("./day3/input.txt");
+    let input = open_file("./day4/input.txt");
 
     let mut fabric = HashMap::new();
     let claims: Vec<Claim> = input.lines().map(|line| day3::parse_line(line)).collect();

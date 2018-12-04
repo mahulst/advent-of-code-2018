@@ -9,3 +9,4 @@ authors = ["Michel van der Hulst <michel@voorkanter.com>"]
 day1 = { path = "day1" }
 day2 = { path = "day2" }
 day3 = { path = "day3" }
+day4 = { path = "day4" }
