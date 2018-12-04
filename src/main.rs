@@ -1,25 +1,26 @@
 use std::fs::File;
 use std::io::prelude::*;
 use std::string::String;
-use std::collections::HashSet;
-use std::iter::FromIterator;
+use std::collections::HashMap;
+use day3::Claim;
+use std::prelude::v1::Vec;
 
-extern crate day1;
-extern crate day2;
+extern crate day3;
 
 fn main() {
-    let input = open_file("./day2/input.txt");
+    let input = open_file("./day3/input.txt");
 
-    let similar_ids = day2::get_similar_ids(&input);
-    let ids: Vec<&str> = similar_ids.iter().cloned().collect();
-    let id1 = ids.get(0).unwrap();
-    let id2 = ids.get(1).unwrap();
-    let day2_result: HashSet<char> =
-        HashSet::from_iter(day2::get_similar_chars(id1, id2).into_iter());
+    let mut fabric = HashMap::new();
+    let claims: Vec<Claim> = input.lines().map(|line| day3::parse_line(line)).collect();
 
-    let stringified: String = day2_result.iter().collect();
+    claims.iter().for_each(|claim| {
+        day3::plot_square(&mut fabric, claim);
+    });
 
-    println!("{:?}", stringified);
+    let overlapping_fabric = day3::count_overlap(&fabric, 2);
+    let non_overlapping_claim = day3::find_non_overlapping(&claims, &fabric).unwrap();
+    println!("{}", overlapping_fabric);
+    println!("{:?}", non_overlapping_claim);
 }
 
 fn open_file(filename: &str) -> String {
