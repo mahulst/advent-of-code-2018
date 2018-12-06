@@ -2,25 +2,28 @@ use std::fs::File;
 use std::io::prelude::*;
 use std::string::String;
 use std::collections::HashMap;
-use day3::Claim;
 use std::prelude::v1::Vec;
+use day4::GuardEvent;
 
-extern crate day3;
+extern crate day4;
 
 fn main() {
     let input = open_file("./day4/input.txt");
 
-    let mut fabric = HashMap::new();
-    let claims: Vec<Claim> = input.lines().map(|line| day3::parse_line(line)).collect();
+    let mut events: Vec<GuardEvent> = input
+        .lines()
+        .map(|line| line.parse().unwrap())
+        .collect();
 
-    claims.iter().for_each(|claim| {
-        day3::plot_square(&mut fabric, claim);
-    });
+    day4::sort_events(&mut events);
 
-    let overlapping_fabric = day3::count_overlap(&fabric, 2);
-    let non_overlapping_claim = day3::find_non_overlapping(&claims, &fabric).unwrap();
-    println!("{}", overlapping_fabric);
-    println!("{:?}", non_overlapping_claim);
+    let sleep_info = day4::events_to_sleep_info(&events);
+    let sleepy_guard = day4::get_most_sleeping_guard(&sleep_info);
+    let sleepy_minute = day4::get_most_sleeped_minute(&sleep_info);
+
+    println!("{:?}", sleepy_guard);
+    println!("{:?}", sleepy_minute);
+
 }
 
 fn open_file(filename: &str) -> String {
