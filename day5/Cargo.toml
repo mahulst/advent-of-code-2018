@@ -1,0 +1,8 @@
+[package]
+name = "day5"
+version = "0.1.0"
+authors = ["Michel van der Hulst <michel@voorkanter.com>"]
+edition = "2018"
+
+[dependencies]
+rayon = "1.0.3"
