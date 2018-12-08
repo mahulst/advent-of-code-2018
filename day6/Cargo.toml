@@ -1,0 +1,9 @@
+[package]
+name = "day6"
+version = "0.1.0"
+authors = ["Michel van der Hulst <michel@voorkanter.com>"]
+edition = "2018"
+
+[dependencies]
+regex = "1.1.0"
+uuid = { version = "0.7", features = ["v4"] }
