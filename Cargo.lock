@@ -16,6 +16,7 @@ dependencies = [
  "day4 0.1.0",
  "day5 0.1.0",
  "day6 0.1.0",
+ "day7 0.1.0",
  "time 0.1.40 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
@@ -122,6 +123,13 @@ version = "0.1.0"
 dependencies = [
  "regex 1.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "uuid 0.7.1 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "day7"
+version = "0.1.0"
+dependencies = [
+ "regex 1.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]

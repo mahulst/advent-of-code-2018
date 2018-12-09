@@ -1,24 +1,26 @@
 use std::fs::File;
 use std::io::prelude::*;
 use std::string::String;
-use day6::Point;
 use time::precise_time_ns;
 
-extern crate day6;
+extern crate day7;
 extern crate time;
+
 fn main() {
-    let input = open_file("./day6/input.txt");
+    let input = open_file("./day7/input.txt");
     let time1 = precise_time_ns();
 
-    let points: Vec<Point> = input.lines().map(|l| l.parse().unwrap()).collect();
-    let areas = day6::get_area(&points);
-    let areas = day6::count_areas(&areas);
+    let reverse_deps = day7::to_nodes(&input);
 
-    let region = day6::get_area_of_distances(&points);
-    let result: Vec<i32> = region.into_iter().filter(| size| size < &10000).collect();
-    println!("length: {}", result.len());
-    println!("{:?}", areas.iter().map(|(id, size)| size).max());
-    let measure = (precise_time_ns() - time1)/ 1000 / 1000;
+    let result = day7::order_build_steps_sleigh(&mut reverse_deps.clone());
+    let time_taken_to_build = day7::build_sleigh(
+        &mut reverse_deps.clone(),
+        5,
+        60,
+    );
+    println!("length: {}", result);
+    eprintln!("time_taken_to_build = {:?}", time_taken_to_build);
+    let measure = (precise_time_ns() - time1) / 1000 / 1000;
 
     println!("time taken: {} ms", measure);
 }
