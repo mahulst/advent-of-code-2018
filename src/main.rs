@@ -3,23 +3,18 @@ use std::io::prelude::*;
 use std::string::String;
 use time::precise_time_ns;
 
-extern crate day7;
+extern crate day8;
 extern crate time;
 
 fn main() {
-    let input = open_file("./day7/input.txt");
+    let input = open_file("./day8/input.txt");
     let time1 = precise_time_ns();
 
-    let reverse_deps = day7::to_nodes(&input);
 
-    let result = day7::order_build_steps_sleigh(&mut reverse_deps.clone());
-    let time_taken_to_build = day7::build_sleigh(
-        &mut reverse_deps.clone(),
-        5,
-        60,
-    );
+    let result = day8::count_metadata(&day8::input_to_nodes(&day8::parse(&input)));
+    let result2 = day8::count_metadata_with_references(&day8::input_to_nodes(&day8::parse(&input)));
     println!("length: {}", result);
-    eprintln!("time_taken_to_build = {:?}", time_taken_to_build);
+    println!("length 2: {}", result2);
     let measure = (precise_time_ns() - time1) / 1000 / 1000;
 
     println!("time taken: {} ms", measure);
