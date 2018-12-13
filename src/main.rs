@@ -3,18 +3,16 @@ use std::io::prelude::*;
 use std::string::String;
 use time::precise_time_ns;
 
-extern crate day8;
+extern crate day9;
 extern crate time;
 
 fn main() {
-    let input = open_file("./day8/input.txt");
+    let input = open_file("./day9/input.txt");
     let time1 = precise_time_ns();
 
-
-    let result = day8::count_metadata(&day8::input_to_nodes(&day8::parse(&input)));
-    let result2 = day8::count_metadata_with_references(&day8::input_to_nodes(&day8::parse(&input)));
+    // 424 players; last marble is worth 71482 points
+    let result = day9::play_game(71482 * 100, 424);
     println!("length: {}", result);
-    println!("length 2: {}", result2);
     let measure = (precise_time_ns() - time1) / 1000 / 1000;
 
     println!("time taken: {} ms", measure);
