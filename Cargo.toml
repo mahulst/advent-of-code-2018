@@ -5,7 +5,6 @@ authors = ["Michel van der Hulst <michel@voorkanter.com>"]
 edition = "2018"
 
 [profile.release]
-debug = true
 
 [workspace]
 
@@ -22,3 +21,4 @@ day8 = { path = "day8" }
 day9 = { path = "day9" }
 day10  = { path = "day10" }
 day11  = { path = "day11" }
+day12  = { path = "day12" }

@@ -83,7 +83,7 @@ mod tests {
 
     #[test]
     fn it_should_get_power_level() {
-        
+
         let input = 8;
 
         // Act
