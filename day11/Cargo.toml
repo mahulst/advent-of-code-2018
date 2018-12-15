@@ -1,0 +1,7 @@
+[package]
+name = "day11"
+version = "0.1.0"
+authors = ["Michel van der Hulst <michel@voorkanter.com>"]
+edition = "2018"
+
+[dependencies]

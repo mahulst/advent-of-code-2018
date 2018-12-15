@@ -12,6 +12,7 @@ version = "0.1.0"
 dependencies = [
  "day1 0.1.0",
  "day10 0.1.0",
+ "day11 0.1.0",
  "day2 0.1.0",
  "day3 0.1.0",
  "day4 0.1.0",
@@ -100,6 +101,10 @@ version = "0.1.0"
 dependencies = [
  "regex 1.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
+
+[[package]]
+name = "day11"
+version = "0.1.0"
 
 [[package]]
 name = "day2"

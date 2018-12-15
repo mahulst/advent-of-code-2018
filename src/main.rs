@@ -2,33 +2,16 @@ use std::fs::File;
 use std::io::prelude::*;
 use std::string::String;
 use time::precise_time_ns;
-use day10::Star;
 
-extern crate day10;
+extern crate day11;
 extern crate time;
 
 fn main() {
     let input = open_file("./day10/input.txt");
     let time1 = precise_time_ns();
+    let result = day11::get_largest_cell_of_any_size(1309);
 
-    let mut stars = day10::input_to_stars(&input);
-    for i in 0..13000 {
-        println!("tick {}", i);
-
-        let bounds = day10::get_bounds(&stars);
-        if bounds.0 % 100 < 50 {
-            eprintln!("bounds = {:?}", bounds);
-
-        }
-
-        // If stars align and are quite close together
-        // Manual reviewing for every drawing
-        if bounds.1 - bounds.0 < 350 {
-            day10::draw_sky(&stars);
-        };
-        stars = day10::tick_stars(&stars);
-
-    }
+    println!("{:?}", result);
     let measure = (precise_time_ns() - time1) / 1000 / 1000;
 
     println!("time taken: {} ms", measure);
