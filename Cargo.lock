@@ -14,6 +14,7 @@ dependencies = [
  "day10 0.1.0",
  "day11 0.1.0",
  "day12 0.1.0",
+ "day13 0.1.0",
  "day2 0.1.0",
  "day3 0.1.0",
  "day4 0.1.0",
@@ -114,6 +115,10 @@ dependencies = [
  "linked-list 0.0.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "regex 1.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
+
+[[package]]
+name = "day13"
+version = "0.1.0"
 
 [[package]]
 name = "day2"
