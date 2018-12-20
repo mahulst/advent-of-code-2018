@@ -1,290 +1,503 @@
-#[derive(Debug, Copy, Clone, PartialEq)]
-pub struct Point {
-    pub x: i32,
-    pub y: i32,
+use core::cmp;
+use std::cmp::Ordering;
+use std::thread;
+use core::time;
+
+pub fn get_width(input: &str) -> usize {
+    input.lines().fold(0, |length, line| {
+        cmp::max(length, line.len())
+    })
+}
+
+pub fn find_char_in_string(input: &str, x: usize, y: usize) -> char {
+    let line = input.lines().nth(y).unwrap();
+    let c = line.chars().nth(x).unwrap();
+
+    c
 }
 
 #[derive(Debug, PartialEq)]
 pub enum Direction {
-    Clockwise,
-    CounterClockwise,
+    North,
+    East,
+    South,
+    West,
 }
 
 #[derive(Debug, PartialEq)]
-pub struct Track {
-    pub top_left: Point,
-    pub bottom_right: Point,
-    pub cart: Option<Cart>,
+pub enum Turn {
+    Left,
+    Right,
+    Straight,
+}
+
+#[derive(Debug, Copy, Clone)]
+pub struct Point {
+    x: usize,
+    y: usize,
 }
 
 #[derive(Debug, PartialEq)]
 pub struct Cart {
     pub direction: Direction,
-    pub position: i32,
-}
-
-pub fn find_top_left_corners(input: &str) -> Vec<Point> {
-    let mut y = 0;
-    let mut list = Vec::new();
-
-    input.lines()
-        .for_each(|l| {
-            l
-                .match_indices("/-")
-                .for_each(|(x, _)| {
-                    list.push(Point { x: x as i32, y })
-                });
-            l
-                .match_indices("/+")
-                .for_each(|(x, _)| {
-                    list.push(Point { x: x as i32, y })
-                });
-
-            y += 1;
-        });
-
-    list
+    pub turns: Turn,
+    pub position: Point,
+    pub crashed: bool,
 }
 
 
-fn get_closing_right_corner(input: &str, top_left: &Point) -> Option<Point> {
-    let mut x = -1;
-    let mut y = -1;
-    let mut result = None;
-    input.lines().for_each(|l| {
-        y += 1;
-
-        if y == top_left.y {
-            l.chars().for_each(|c| {
-                x += 1;
-
-                if x > top_left.x {
-                    if c == '\\' && result == None {
-                        result = Some(Point { x, y });
-                    }
-                }
-            })
-        }
-    });
-
-    result
+impl PartialOrd for Point {
+    fn partial_cmp(&self, other: &Point) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
 }
 
-fn get_closing_bottom_right_corner(input: &str, top_right: &Point) -> Option<Point> {
-    let mut y = -1;
-    let mut result = None;
-
-    input.lines().for_each(|l| {
-        let mut x = -1;
-
-        y += 1;
-        if y >= top_right.y {
-            l.chars().for_each(|c| {
-                x += 1;
-                if x == top_right.x {
-                    if c == '/' && result == None {
-                        result = Some(Point { x, y });
-                    }
-                }
-            })
-        }
-    });
-
-    result
-}
-
-pub fn find_bottom_right_corners(input: &str, top_lefts: Vec<Point>) -> Vec<Track> {
-    top_lefts
-        .iter()
-        .map(|top_left| {
-            let top_right = get_closing_right_corner(input, top_left).unwrap();
-
-            let bottom_right = get_closing_bottom_right_corner(input, &top_right).unwrap();
-
-            Track {
-                top_left: *top_left,
-                bottom_right,
-                cart: None,
+impl Ord for Point {
+    fn cmp(&self, other: &Point) -> Ordering {
+        match self.y.cmp(&other.y) {
+            Ordering::Less => Ordering::Less,
+            Ordering::Greater => Ordering::Greater,
+            Ordering::Equal => {
+                self.x.cmp(&other.x)
             }
-        }).collect()
+        }
+    }
 }
 
-pub fn parse_tracks(input: &str) -> Vec<Track> {
-    find_bottom_right_corners(input, find_top_left_corners(input))
+impl PartialEq for Point {
+    fn eq(&self, other: &Point) -> bool {
+        self.y == other.y && self.x == other.x
+    }
 }
 
-fn find_cart(input: &str, track: &Track) -> Option<Cart> {
+impl Eq for Point {}
+
+pub fn find_carts(input: &str) -> Vec<Cart> {
     let mut y = 0;
-    let mut cart = None;
+    let mut carts = Vec::new();
+
     input.lines().for_each(|l| {
-        let mut x = -1;
-
-        y += 1;
-
+        let mut x = 0;
         l.chars().for_each(|c| {
-            x += 1;
+            let direction = match c {
+                '>' => Some(Direction::East),
 
-            let on_top_lane = y == track.top_left.y && x >= track.top_left.x && x <= track.bottom_right.x;
-            let on_bottom_lane = y == track.bottom_right.y && x >= track.top_left.x && x <= track.bottom_right.x;
-            let on_left_lane = y >= track.top_left.y && y <= track.bottom_right.y && x == track.top_left.x;
-            let on_right_lane = y >= track.top_left.y && y <= track.bottom_right.y && x == track.bottom_right.x;
+                '<' => Some(Direction::West),
 
-            let x_position_on_track = track.top_left.x - x;
-            let y_position_on_track = y - track.top_left.y;
-            let track_width = track.bottom_right.x - track.top_left.x;
-            let track_height = track.bottom_right.y - track.top_left.y;
+                '^' => Some(Direction::North),
 
-            match c {
-                '>' => {
-                    if on_top_lane {
-                        let position = x_position_on_track;
-                        cart = Some(Cart {
-                            position,
-                            direction: Direction::Clockwise
-                        });
-                    }
+                'v' => Some(Direction::South),
 
-                    if on_bottom_lane {
-                        let position = track_width + track_height + track_width - x_position_on_track;
-                        cart = Some(Cart {
-                            position,
-                            direction: Direction::CounterClockwise
-                        })
-                    }
-                },
-                '<' => {
-                    if on_top_lane {
-                        let position = x_position_on_track;
-                        cart = Some(Cart {
-                            position,
-                            direction: Direction::CounterClockwise
-                        });
-                    }
+                _ => None
+            };
+            let position = Point { x, y };
+            let turns = Turn::Left;
 
-                    if on_bottom_lane {
-                        let position = track_width + track_height + track_width - x_position_on_track;
-                        cart = Some(Cart {
-                            position,
-                            direction: Direction::Clockwise
-                        })
-                    }
-                },
-                '^' => {
-                    if on_left_lane {
-                        let position = track_width * 2 + track_height + track_height - y_position_on_track;
-                        cart = Some(Cart {
-                            position,
-                            direction: Direction::Clockwise
-                        })
-                    }
-                    if on_right_lane {
-                        let position = track_width + y_position_on_track;
-                        cart = Some(Cart {
-                            position,
-                            direction: Direction::CounterClockwise
-                        })
-                    }
-                },
-                'v' => {
-
-                    if on_left_lane {
-                        let position = track_width * 2 + track_height + track_height - y_position_on_track;
-                        cart = Some(Cart {
-                            position,
-                            direction: Direction::CounterClockwise
-                        })
-                    }
-                    if on_right_lane {
-                        let position = track_width + y_position_on_track;
-                        cart = Some(Cart {
-                            position,
-                            direction: Direction::Clockwise
-                        })
-                    }
-                },
+            match direction {
+                Some(direction) => carts.push(Cart { position, direction, turns, crashed: false }),
                 _ => {}
-            }
+            };
+
+            x += 1;
         });
 
+        y += 1;
     });
+
+    carts
+}
+
+pub fn get_empty_tracks(input: &str) -> String {
+    let empty_track = input.replacen('>', "-", 999);
+    let empty_track = empty_track.replacen('<', "-", 999);
+    let empty_track = empty_track.replacen('^', "|", 999);
+    let empty_track = empty_track.replacen('v', "|", 999);
+    empty_track
+}
+
+fn find_collisions(carts: &Vec<Cart>) -> Option<(Point, usize, usize)> {
+    let mut i = 0;
+    let mut result = None;
+    carts
+        .iter()
+        .for_each(|cart| {
+            let next_position = get_next_position(cart);
+            let mut j = 0;
+            carts.iter().for_each(|cart2| {
+                let cart2_position = if cart.position > cart2.position {
+                    get_next_position(cart2)
+                } else {
+                    cart2.position
+                };
+
+                if !cart.crashed && !cart2.crashed && next_position == cart2_position && cart2 != cart && result == None {
+                    result = Some((next_position, cmp::min(i, j), cmp::max(i, j)));
+                }
+                j += 1;
+            });
+
+            i += 1;
+        });
+
+    result
+}
+
+fn get_next_position(cart: &Cart) -> Point {
+    match cart.direction {
+        Direction::North => {
+            Point { x: cart.position.x, y: cart.position.y - 1 }
+        }
+        Direction::South => {
+            Point { x: cart.position.x, y: cart.position.y + 1 }
+        }
+        Direction::East => {
+            Point { x: cart.position.x + 1, y: cart.position.y }
+        }
+        Direction::West => {
+            Point { x: cart.position.x - 1, y: cart.position.y }
+        }
+    }
+}
+
+pub fn move_carts<'a, 'b>(empty_tracks: &'a str, carts: &'b mut Vec<Cart>) -> Option<Point> {
+    carts.sort_by(|a, b| {
+        a.position.partial_cmp(&b.position).unwrap()
+    });
+
+
+    if let Some(result) = find_collisions(&carts) {
+        let (left, right) = carts.split_at_mut(result.2);
+        let cart1: &mut Cart = left.get_mut(result.1).unwrap();
+        let cart2: &mut Cart = right.get_mut(0).unwrap();
+
+        cart1.crashed = true;
+        cart2.crashed = true;
+
+        return Some(result.0);
+    }
+    carts
+        .iter_mut()
+        .for_each(|cart| {
+            update_cart(empty_tracks, cart);
+        });
 
     None
 }
 
-pub fn find_carts(input: &str, tracks: &mut Vec<Track>) {
-    for track in tracks {
-        let cart = find_cart(input, track);
 
-        track.cart = cart;
-        println!("{:#?}", track);
+pub fn update_cart(empty_tracks: &str, cart: &mut Cart) {
+    let next_position = get_next_position(cart);
 
+    let c = find_char_in_string(empty_tracks, next_position.x, next_position.y);
+    match c {
+        '\\' => {
+            match cart.direction {
+                Direction::North => {
+                    cart.direction = Direction::West;
+                }
+                Direction::South => {
+                    cart.direction = Direction::East;
+                }
+                Direction::East => {
+                    cart.direction = Direction::South;
+                }
+                Direction::West => {
+                    cart.direction = Direction::North;
+                }
+            }
+        }
+        '/' => {
+            match cart.direction {
+                Direction::North => {
+                    cart.direction = Direction::East;
+                }
+                Direction::South => {
+                    cart.direction = Direction::West;
+                }
+                Direction::East => {
+                    cart.direction = Direction::North;
+                }
+                Direction::West => {
+                    cart.direction = Direction::South;
+                }
+            }
+        }
+        '+' => {
+            match cart.turns {
+                Turn::Left => {
+                    match cart.direction {
+                        Direction::North => {
+                            cart.direction = Direction::West;
+                        }
+                        Direction::South => {
+                            cart.direction = Direction::East;
+                        }
+                        Direction::East => {
+                            cart.direction = Direction::North;
+                        }
+                        Direction::West => {
+                            cart.direction = Direction::South;
+                        }
+                    }
+                    cart.turns = Turn::Straight;
+                }
+                Turn::Straight => {
+                    cart.turns = Turn::Right;
+                }
+                Turn::Right => {
+                    match cart.direction {
+                        Direction::North => {
+                            cart.direction = Direction::East;
+                        }
+                        Direction::South => {
+                            cart.direction = Direction::West;
+                        }
+                        Direction::East => {
+                            cart.direction = Direction::South;
+                        }
+                        Direction::West => {
+                            cart.direction = Direction::North;
+                        }
+                    }
+                    cart.turns = Turn::Left;
+                }
+            }
+        }
+        _ => {}
+    }
+    cart.position = next_position;
+}
+
+pub fn find_last_cart<'a, 'b>(empty_tracks: &'a str, carts: &'b mut Vec<Cart>) -> Option<&'b mut Cart> {
+    let mut i = 0;
+
+    let mut done = false;
+
+    while !done {
+        let done = carts
+            .iter()
+            .filter(|c| {
+                !c.crashed
+            }).count() == 1;
+
+        println!("{}", done);
+        if done {
+            return
+                carts.into_iter()
+                    .find(|c| {
+                        !c.crashed
+                    });
+        }
+
+        let collision = move_carts(&empty_tracks, carts);
+
+        i += 1;
     }
 
+    None
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::Track;
-    use crate::Point;
+    use crate::Cart;
 
     const TEST_INPUT: &str = r"/->-\
-|   |  /+---\
+|   |  /----\
 | /-+--+-\  |
 | | |  | v  |
 \-+-/  \-+--/
-  \------/";
+  \------/   ";
+
 
     #[test]
-    fn it_should_parse_tracks() {
+    fn it_should_find_the_last_cart_left() {
+        // Arrange
+        let input = r"/>-<\
+|   |
+| /<+-\
+| | | v
+\>+</ |
+  |   ^
+  \<->/";
+        let empty_track = crate::get_empty_tracks(input);
+        let mut carts = crate::find_carts(input);
+
         // Act
-        let result = crate::parse_tracks(TEST_INPUT);
+        let result = crate::find_last_cart(&empty_track, &mut carts);
 
         // Assert
-        assert_eq!(result, vec![
-            Track {
-                top_left: Point {
-                    x: 0,
+        assert_eq!(result, None);
+    }
+
+    #[test]
+    fn it_should_compare_points() {
+        // Arrange
+        let point = crate::Point { x: 1, y: 10 };
+        let point2 = crate::Point { x: 2, y: 10 };
+        let point3 = crate::Point { x: 2, y: 11 };
+        let point4 = crate::Point { x: 2, y: 13 };
+
+        // Act
+        let result = point < point2;
+        let result2 = point3 < point4;
+        let result3 = point3 == point3;
+
+        // Assert
+        assert_eq!(result, true);
+        assert_eq!(result2, true);
+        assert_eq!(result3, true);
+    }
+
+    #[test]
+    fn it_should_get_width() {
+        // Arrange
+        let input = TEST_INPUT;
+
+        // Act
+        let width = crate::get_width(input);
+
+        // Assert
+        assert_eq!(width, 13);
+    }
+
+    #[test]
+    fn it_should_get_char_at_coords() {
+        // Arrange
+        let input = TEST_INPUT;
+
+        // Act
+        let c = crate::find_char_in_string(input, 0, 0);
+        let c2 = crate::find_char_in_string(input, 7, 2);
+
+        // Assert
+        assert_eq!(c, '/');
+        assert_eq!(c2, '+');
+    }
+
+    #[test]
+    fn it_should_find_carts() {
+        // Arrange
+        let input = TEST_INPUT;
+
+        // Act
+        let carts = crate::find_carts(input);
+
+        // Assert
+        assert_eq!(carts, vec![
+            Cart {
+                direction: crate::Direction::East,
+                turns: crate::Turn::Left,
+                position: crate::Point {
+                    x: 2,
                     y: 0,
                 },
-                bottom_right: Point {
-                    x: 4,
-                    y: 4,
-                },
-                cart: None,
+                crashed: false,
             },
-            Track {
-                top_left: Point {
-                    x: 7,
-                    y: 1,
-                },
-                bottom_right: Point {
-                    x: 12,
-                    y: 4,
-                },
-                cart: None,
-            },
-            Track {
-                top_left: Point {
-                    x: 2,
-                    y: 2,
-                },
-                bottom_right: Point {
+            Cart {
+                direction: crate::Direction::South,
+                turns: crate::Turn::Left,
+                position: crate::Point {
                     x: 9,
-                    y: 5,
+                    y: 3,
                 },
-                cart: None,
+                crashed: false,
             }
         ]);
     }
 
     #[test]
-    fn it_should_find_carts_on_track() {
+    fn it_should_return_an_empty_track() {
         // Arrange
-        let mut tracks = crate::parse_tracks(TEST_INPUT);
+        let input = TEST_INPUT;
+        let expected_tracks = r"/---\
+|   |  /----\
+| /-+--+-\  |
+| | |  | |  |
+\-+-/  \-+--/
+  \------/   ";
 
         // Act
-        crate::find_carts(TEST_INPUT, &mut tracks);
-        // Assert
+        let empty_track = crate::get_empty_tracks(input);
 
+        // Assert
+        assert_eq!(empty_track, expected_tracks);
+    }
+
+    #[test]
+    fn it_should_find_collisions() {
+        // Arrange
+        let input = TEST_INPUT;
+        let empty_track = crate::get_empty_tracks(input);
+        let mut carts = crate::find_carts(input);
+
+        // Act
+        let mut result = None;
+        while result == None {
+            result = crate::move_carts(&empty_track, &mut carts);
+        }
+
+        // Assert
+        assert_eq!(result, Some(crate::Point { x: 7, y: 3 }));
+    }
+
+
+    #[test]
+    fn it_should_change_direction_on_corners() {
+        // Arrange
+        let input = r"/---\
+|   |  /----\
+| /-+--+-\  |
+| | |  | |  v
+\-+-/  \-+--/
+  \------/   ";
+
+        let empty_track = crate::get_empty_tracks(input);
+        let mut carts = crate::find_carts(input);
+        let cart = carts.get_mut(0).unwrap();
+        let expected_cart = crate::Cart {
+            direction: crate::Direction::West,
+            turns: crate::Turn::Left,
+            position: crate::Point {
+                x: 12,
+                y: 4,
+            },
+            crashed: false,
+        };
+
+        // Act
+        crate::update_cart(&empty_track, cart);
+
+        // Assert
+        assert_eq!(*cart, expected_cart);
+    }
+
+    #[test]
+    fn it_should_change_direction_on_crossroads() {
+        // Arrange
+        let input = r"/---\
+|   |  /----\
+| /-+->+-\  |
+| | |  | |  |
+\-+-/  \-+--/
+  \------/   ";
+
+        let empty_track = crate::get_empty_tracks(input);
+        let mut carts = crate::find_carts(input);
+        let cart = carts.get_mut(0).unwrap();
+        let expected_cart = crate::Cart {
+            direction: crate::Direction::North,
+            turns: crate::Turn::Straight,
+            position: crate::Point {
+                x: 7,
+                y: 2,
+            },
+            crashed: false,
+        };
+
+        // Act
+        crate::update_cart(&empty_track, cart);
+
+        // Assert
+        assert_eq!(*cart, expected_cart);
     }
 }

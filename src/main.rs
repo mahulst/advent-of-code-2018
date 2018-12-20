@@ -1,37 +1,24 @@
 use std::fs::File;
 use std::io::prelude::*;
 use std::string::String;
-use time::precise_time_ns;
+use std::{thread, time};
 
-extern crate day12;
-extern crate time;
+
+extern crate day13;
 
 fn main() {
-    let pattern_input = open_file("./day12/patterns.txt");
-    let input = "##.##.##..#..#.#.#.#...#...#####.###...#####.##..#####.#..#.##..#..#.#...#...##.##...#.##......####.";
-    let time1 = precise_time_ns();
-    let mut initial_state = day12::input_to_list(input);
-    let patterns = pattern_input.lines().map(|l| day12::parse_pattern(l)).collect();
-    let mut new_row = day12::tick_row(&patterns, &mut initial_state);
+    let input = open_file("./day13/input.txt");
 
-    let generations: usize = 50000000000;
+    let empty_track = day13::get_empty_tracks(&input);
+    let mut carts = day13::find_carts(&input);
 
-    let mut increase: usize = 0;
-    let mut previous_sum: usize = 0;
-    for x in 0..100 - 1 {
-        new_row = day12::tick_row(&patterns, &mut new_row);
+    let mut i = 0;
 
-        let sum = day12::count_row(&new_row) as usize;
+    let mut done = false;
 
-        increase = sum - previous_sum;
-        previous_sum = sum;
-    }
+    let result = day13::find_last_cart(&empty_track, &mut carts);
 
-    let total = (increase * (generations - 100)) + previous_sum;
-    println!("{:?}", total);
-    let measure = (precise_time_ns() - time1) / 1000 / 1000;
-
-    println!("time taken: {} ms", measure);
+    println!("{:#?}", result);
 }
 
 fn open_file(filename: &str) -> String {
