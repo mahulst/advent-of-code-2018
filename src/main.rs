@@ -1,24 +1,22 @@
 use std::fs::File;
 use std::io::prelude::*;
 use std::string::String;
-use std::{thread, time};
+use time::precise_time_ns;
 
 
-extern crate day13;
+extern crate day14;
 
 fn main() {
-    let input = open_file("./day13/input.txt");
 
-    let empty_track = day13::get_empty_tracks(&input);
-    let mut carts = day13::find_carts(&input);
+    let time1 = precise_time_ns();
 
-    let mut i = 0;
+    let mut recipes = vec![3, 7];
 
-    let mut done = false;
+    let result = day14::find_first_occurence(&mut recipes, &[5,1,3,4,0,1], 6, 25000000);
+    println!("{:?}", result);
+    let measure = (precise_time_ns() - time1) / 1000 / 1000;
 
-    let result = day13::find_last_cart(&empty_track, &mut carts);
-
-    println!("{:#?}", result);
+    println!("time taken: {} ms", measure);
 }
 
 fn open_file(filename: &str) -> String {
