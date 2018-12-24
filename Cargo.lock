@@ -16,6 +16,7 @@ dependencies = [
  "day12 0.1.0",
  "day13 0.1.0",
  "day14 0.1.0",
+ "day15 0.1.0",
  "day2 0.1.0",
  "day3 0.1.0",
  "day4 0.1.0",
@@ -124,6 +125,13 @@ version = "0.1.0"
 [[package]]
 name = "day14"
 version = "0.1.0"
+
+[[package]]
+name = "day15"
+version = "0.1.0"
+dependencies = [
+ "rayon 1.0.3 (registry+https://github.com/rust-lang/crates.io-index)",
+]
 
 [[package]]
 name = "day2"
