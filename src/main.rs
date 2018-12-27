@@ -4,21 +4,29 @@ use std::string::String;
 use time::precise_time_ns;
 
 
-extern crate day15;
+extern crate day16;
 
 fn main() {
-
     let time1 = precise_time_ns();
 
-    let input = open_file("./day15/input.txt");
+    let input = open_file("./day16/program.txt");
 
-    let map = day15::parse_map(&input);
+    let opcodes: Vec<day16::OpCode> = input.lines().map(|l| {
+        l.parse().expect("Unwrapping opcode")
+    }).collect();
 
-    let result = day15::simulate_battle(map);
-    println!("{:?}", result);
+    let mut reg = day16::Register::new(0,0,0,0);
+
+
+    opcodes.iter().for_each(|oc| {
+        let func = day16::opcode_id_to_fn(oc.id);
+        reg = func(&reg, oc);
+    });
+
+    println!("{:?}", reg);
     let measure = (precise_time_ns() - time1) / 1000 / 1000;
 
-//    println!("time taken: {} ms", measure);
+    println!("time taken: {} ms", measure);
 }
 
 fn open_file(filename: &str) -> String {

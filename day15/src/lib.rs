@@ -362,13 +362,13 @@ pub fn simulate_battle(map: Map) -> i32 {
             map.entities.insert(i, *entity);
 
             // Slow down steps for animation
-            let ten_millis = time::Duration::from_millis(10);
-            thread::sleep(ten_millis);
+//            let ten_millis = time::Duration::from_millis(10);
+//            thread::sleep(ten_millis);
 
         }
         // clear terminal for cool animation
-        print!("{}[2J", 27 as char);
-        print_map(&map);
+//        print!("{}[2J", 27 as char);
+//        print_map(&map);
 
         rounds += 1;
     }
